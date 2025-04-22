@@ -46,11 +46,14 @@ services:
       DD_SERVICE: ${DD_SERVICE:-}
       DD_ENV: ${DD_ENV:-}
     depends_on:
-      <<: *common-depends-on
+      setup:
+        condition: service_completed_successfully
       autocompleted:
         condition: service_started
       iqdb:
         condition: service_started
+      <<: *common-depends-on
+      
     tty: true
 
   autocompleted:
@@ -217,6 +220,21 @@ services:
     profiles: 
       - linter
 
+  setup:
+    image: e621
+    command: /app/bin/setup
+    user: ${DOCKER_USER:-root}
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+      - post_data:/app/public/data
+    environment:
+      <<: *common-env
+      RAILS_ENV: development
+    depends_on:
+      <<: *common-depends-on
+    restart: "no"
+
 volumes:
   post_data:
   iqdb_data:
@@ -226,3 +244,4 @@ volumes:
   node_modules:
   rubocop_cache:
   discord_joiner_data:
+
